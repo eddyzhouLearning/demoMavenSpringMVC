@@ -13,60 +13,37 @@
 	<!-- if you use annotation you must configure following setting -->
 	<mvc:annotation-driven />
 
-	<!-- 加载配置文件 -->
-	<context:property-placeholder location="classpath:db.properties" />
-	
-	<!-- 数据源，使用dbcp -->
-	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
-		destroy-method="close">
-		<property name="driverClassName" value="${jdbc.driver}" />
-		<property name="url" value="${jdbc.url}" />
-		<property name="username" value="${jdbc.username}" />
-		<property name="password" value="${jdbc.password}" />
-		<property name="maxActive" value="10" />
-		<property name="maxIdle" value="5" />
+	<!-- 校验器 -->
+	<bean id="validator"
+		class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+		<!-- hibernate校验器 -->
+		<property name="providerClass"
+			value="org.hibernate.validator.HibernateValidator" />
+		<!-- 指定校验使用的资源文件，在文件中配置校验错误信息，如果不指定则默认使用classpath下的ValidationMessages.properties -->
+		<property name="validationMessageSource" ref="messageSource" />
 	</bean>
-	
-	<!-- sqlSessinFactory -->
-	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-		<!-- 加载mybatis的配置文件 -->
-		<property name="configLocation" value="SqlMapConfig.xml" />
-		<!-- 数据源 -->
-		<property name="dataSource" ref="dataSource" />
+	<!-- 校验错误信息配置文件 -->
+	<bean id="messageSource"
+		class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<!-- 资源文件名 -->
+		<property name="basenames">
+			<list>
+				<value>classpath:CustomValidationMessages</value>
+			</list>
+		</property>
+		<!-- 资源文件编码格式 -->
+		<property name="fileEncodings" value="utf-8" />
+		<!-- 对资源文件内容缓存时间，单位秒 -->
+		<property name="cacheSeconds" value="120" />
 	</bean>
-	
-	<!-- 原始dao接口 -->
-	
-	<bean id="userDao" class="cn.zz.ssm.dao.UserDaoImpl">
-		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
-	</bean>
-	
-	
-	<!-- mapper配置 
-	MapperFactoryBean：根据mapper接口生成代理对象
-	-->
-	<!-- <bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
-		mapperInterface指定mapper接口
-		<property name="mapperInterface" value="cn.itcast.ssm.mapper.UserMapper"/>
-		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
-	</bean> -->
-	<!-- mapper批量扫描，从mapper包中扫描出mapper接口，自动创建代理对象并且在spring容器中注册 
-	遵循规范：将mapper.java和mapper.xml映射文件名称保持一致，且在一个目录 中
-	自动扫描出来的mapper的bean的id为mapper类名（首字母小写）
-	-->
-	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-		<!-- 指定扫描的包名 
-		如果扫描多个包，每个包中间使用半角逗号分隔
-		-->
-		<property name="basePackage" value="cn.zz.ssm.mapper"/>
-		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
-		
-	</bean>
-	
+
 
 	<!-- scan the package and the sub package -->
-	<context:component-scan
-		base-package="cn.zz" />
+	<context:component-scan base-package="cn.zz.ssm">
+		<!-- 只扫描controller -->
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
 
 	<!-- configure the InternalResourceViewResolver -->
 	<bean
@@ -78,4 +55,25 @@
 		<property name="suffix" value=".jsp" />
 	</bean>
 	
+	
+	<!-- conversion-service="conversionService" -->
+
+	<mvc:annotation-driven validator="validator">
+	</mvc:annotation-driven>
+
+	<!-- 自定义参数绑定 -->
+	<bean id="conversionService"
+		class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+		<!-- 转换器 -->
+		<property name="converters">
+			<list>
+				<!-- 日期类型转换 -->
+				<bean
+					class="cn.zz.ssm.controller.converter.CustomDateConverter" />
+			</list>
+		</property>
+
+
+	</bean>
+
 </beans>

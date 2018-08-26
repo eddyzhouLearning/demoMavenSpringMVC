@@ -3,9 +3,21 @@
  "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
 <web-app>
-  <display-name>demoMavenSpringMVC</display-name>
-  
-  <!--configure the setting of springmvcDispatcherServlet and configure the 
+	<display-name>demoMavenSpringMVC</display-name>
+
+	<!-- ContextLoaderListener 加载IOC容器，Spring框架的底层是listener -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<!-- 指定Spring的配置文件的路径和名称 -->
+		<param-value>classpath:application-spring.xml</param-value>
+	</context-param>
+	<!-- Bootstraps the root web application context before servlet initialization -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+
+	<!--configure the setting of springmvcDispatcherServlet and configure the 
 		mapping -->
 	<servlet>
 		<servlet-name>springmvc</servlet-name>
